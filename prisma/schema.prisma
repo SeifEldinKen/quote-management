@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EmailProvider {
+  LOCAL
+  GOOGLE
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  USER
+  GUEST
+}
+
+model RegistrationRequest {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  username     String    @unique
+  passwordHash String
+  tokenHash    String
+  redeemAt     DateTime? @db.Timestamptz()
+  expiresAt    DateTime  @db.Timestamptz()
+  updatedAt    DateTime  @updatedAt @db.Timestamptz()
+  createdAt    DateTime  @default(now()) @db.Timestamptz()
+
+  @@index([email, username])
+  @@map("registration_requests")
+}
+
+model User {
+  id                String        @id @default(uuid())
+  username          String        @unique
+  email             String        @unique
+  emailProvider     EmailProvider @default(LOCAL)
+  isEmailVerified   Boolean       @default(true)
+  phoneNumber       String?
+  isPhoneVerified   Boolean?
+  passwordHash      String
+  passwordChangedAt Int?
+  biometricHash     String?
+  gender            Gender?
+  role              Role          @default(USER)
+  profilePicKey     String?
+  isBlocked         Boolean       @default(false)
+  deletedAt         DateTime?     @db.Timestamptz()
+  updatedAt         DateTime      @updatedAt @db.Timestamptz()
+  createdAt         DateTime      @default(now()) @db.Timestamptz()
+
+  session      Session[]
+  Quote        Quote[]
+  QuoteRequest QuoteRequest[]
+
+  @@map("users")
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  userId       String
+  userAgent    String
+  deviceId     String?
+  refreshToken String
+  expiresAt    DateTime
+  updatedAt    DateTime @updatedAt @db.Timestamptz()
+  createdAt    DateTime @default(now()) @db.Timestamptz()
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, deviceId, refreshToken])
+  @@map("sessions")
+}
+
+model TokenBlacklist {
+  id           String   @id @default(uuid())
+  accessToken  String?
+  refreshToken String
+  updatedAt    DateTime @updatedAt @db.Timestamptz()
+  createdAt    DateTime @default(now()) @db.Timestamptz()
+
+  @@map("token_blacklist")
+}
+
+model Topic {
+  id           String         @id @default(uuid())
+  name         String
+  isPublished  Boolean        @default(true)
+  updatedAt    DateTime       @updatedAt @db.Timestamptz()
+  createdAt    DateTime       @default(now()) @db.Timestamptz()
+  Quote        Quote[]
+  QuoteRequest QuoteRequest[]
+
+  @@map("topics")
+}
+
+model Book {
+  id           String         @id @default(uuid())
+  name         String
+  author       String
+  isPublished  Boolean        @default(true)
+  updatedAt    DateTime       @updatedAt @db.Timestamptz()
+  createdAt    DateTime       @default(now()) @db.Timestamptz()
+  Quote        Quote[]
+  QuoteRequest QuoteRequest[]
+
+  @@map("books")
+}
+
+model Quote {
+  id              String   @id @default(uuid())
+  content         String
+  bookId          String
+  topicId         String
+  createdByUserId String
+  language        String
+  isPublished     Boolean  @default(true)
+  updatedAt       DateTime @updatedAt @db.Timestamptz()
+  createdAt       DateTime @default(now()) @db.Timestamptz()
+
+  book  Book  @relation(fields: [bookId], references: [id])
+  topic Topic @relation(fields: [topicId], references: [id])
+  user  User  @relation(fields: [createdByUserId], references: [id])
+
+  @@map("quotes")
+}
+
+model QuoteRequest {
+  id        String   @id @default(uuid())
+  userId    String
+  content   String
+  bookId    String
+  language  String
+  topicId   String
+  updatedAt DateTime @updatedAt @db.Timestamptz()
+  createdAt DateTime @default(now()) @db.Timestamptz()
+
+  user  User  @relation(fields: [userId], references: [id])
+  book  Book  @relation(fields: [bookId], references: [id])
+  topic Topic @relation(fields: [topicId], references: [id])
+
+  @@map("quote_requests")
+}

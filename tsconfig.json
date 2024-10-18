@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    /* Base Options */
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "target": "es2022",
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "moduleDetection": "force",
+    "isolatedModules": true,
+
+    /* Strictness */
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+
+    "moduleResolution": "Bundler",
+    "module": "esnext",
+    "noEmit": true,
+
+    "baseUrl": "./src",
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "paths": {
+      "@application/*": ["application/*"],
+      "@domain/*": ["domain/*"],
+      "@infrastructure/*": ["infrastructure/*"],
+      "@shared/*": ["shared/*"]
+    },
+    "typeRoots": [
+      /* types */
+      "./src/types",
+      "./node_modules/@types"
+    ],
+  },
+  "include": [
+    /**/
+    "src/**/*.ts",
+    "src/data/**/*.ts",
+    "prisma/**/*",
+  ],
+  "exclude": [
+    /**/
+    "node_modules",
+    "dist",
+    "**/*.test.ts"
+  ]
+}
